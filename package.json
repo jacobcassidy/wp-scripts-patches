@@ -1,17 +1,32 @@
 {
-  "name": "wp-scripts-patches",
-  "version": "1.O.O",
-  "description": "Patches for @wordpress/scripts to support WordPress development with modern tooling.",
-  "author": "Jacob Cassidy",
-  "homepage": "https://cassidydc.com",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jacobcassidy/wp-scripts-patches"
-  },
-  "bugs": {
-    "url": "https://github.com/jacobcassidy/wp-scripts-patches/issues"
-  },
-  "devDependencies": {
-    "@wordpress/scripts": "^30.14.1"
-  }
+	"name": "wp-scripts-patches",
+	"version": "1.0.0",
+	"description": "Patches for @wordpress/scripts to support WordPress development with modern tooling.",
+	"author": "Jacob Cassidy",
+	"homepage": "https://cassidydc.com",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/jacobcassidy/wp-scripts-patches"
+	},
+	"bugs": {
+		"url": "https://github.com/jacobcassidy/wp-scripts-patches/issues"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^30.14.1",
+		"stylelint-config-cssmodules-order": "^1.1.1",
+		"stylelint-declaration-block-no-ignored-properties": "^2.8.0",
+		"stylelint-high-performance-animation": "^1.11.0",
+		"stylelint-plugin-logical-css": "^1.2.2",
+		"stylelint-use-nesting": "^6.0.0"
+	},
+	"scripts": {
+		"start": "wp-scripts start",
+		"build": "wp-scripts build",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"lint:md:docs": "wp-scripts lint-md-docs",
+		"lint:pkg-json": "wp-scripts lint-pkg-json",
+		"packages-update": "wp-scripts packages-update"
+	}
 }
