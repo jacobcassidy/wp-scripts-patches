@@ -1,0 +1,17 @@
+{
+  "name": "wp-scripts-patches",
+  "version": "1.O.O",
+  "description": "Patches for @wordpress/scripts to support WordPress development with modern tooling.",
+  "author": "Jacob Cassidy",
+  "homepage": "https://cassidydc.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacobcassidy/wp-scripts-patches"
+  },
+  "bugs": {
+    "url": "https://github.com/jacobcassidy/wp-scripts-patches/issues"
+  },
+  "devDependencies": {
+    "@wordpress/scripts": "^30.14.1"
+  }
+}
