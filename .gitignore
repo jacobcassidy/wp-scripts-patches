@@ -1,3 +1,19 @@
 node_modules/*
 !node_modules/@wordpress
+
+# Files for testing patches
 test-files
+
+# wp-dev-config-files for testing
+composer.json
+composer.lock
+phpcs.xml
+phpstan.neon
+.editorconfig
+.markdownlint-cli2.jsonc
+.markdownlint.jsonc
+.prettierignore
+eslint.config.mjs
+prettier.config.mjs
+stylelint.config.mjs
+webpack.config.mjs
