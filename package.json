@@ -12,12 +12,24 @@
 		"url": "https://github.com/jacobcassidy/wp-scripts-patches/issues"
 	},
 	"devDependencies": {
+		"@eslint/js": "^9.23.0",
 		"@wordpress/scripts": "^30.14.1",
+		"copy-webpack-plugin": "^13.0.0",
+		"eslint-plugin-jest": "^28.11.0",
+		"eslint-plugin-react-hooks": "^5.2.0",
+		"eslint": "^9.23.0",
+		"fast-glob": "^3.3.3",
+		"globals": "^16.0.0",
+		"patch-package": "^8.0.0",
+		"prettier": "npm:wp-prettier@^3.0.3",
 		"stylelint-config-cssmodules-order": "^1.1.1",
 		"stylelint-declaration-block-no-ignored-properties": "^2.8.0",
 		"stylelint-high-performance-animation": "^1.11.0",
 		"stylelint-plugin-logical-css": "^1.2.2",
-		"stylelint-use-nesting": "^6.0.0"
+		"stylelint-use-nesting": "^6.0.0",
+		"stylelint": "^16.17.0",
+		"typescript-eslint": "^8.29.0",
+		"webpack-remove-empty-scripts": "^1.0.4"
 	},
 	"scripts": {
 		"start": "wp-scripts start",
