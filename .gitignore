@@ -1,5 +1,6 @@
 node_modules/*
 !node_modules/@wordpress
+node_modules/@wordpress/**/node_modules
 vendor
 
 # Files for testing patches
