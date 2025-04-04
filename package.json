@@ -1,7 +1,7 @@
 {
 	"name": "wp-scripts-patches",
 	"version": "1.0.0",
-	"description": "Patches for @wordpress/scripts to support WordPress development with modern tooling.",
+	"description": "Provides patches for the `@wordpress/scripts` node module to support modern tooling in WordPress development.",
 	"author": "Jacob Cassidy",
 	"homepage": "https://cassidydc.com",
 	"repository": {
