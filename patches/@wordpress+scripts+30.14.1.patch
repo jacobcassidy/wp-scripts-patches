@@ -1,0 +1,434 @@
+diff --git a/node_modules/@wordpress/scripts/config/.eslintignore b/node_modules/@wordpress/scripts/config/.eslintignore
+deleted file mode 100644
+index ee68111..0000000
+--- a/node_modules/@wordpress/scripts/config/.eslintignore
++++ /dev/null
+@@ -1,3 +0,0 @@
+-build
+-node_modules
+-vendor
+diff --git a/node_modules/@wordpress/scripts/config/.eslintrc.js b/node_modules/@wordpress/scripts/config/.eslintrc.js
+deleted file mode 100644
+index 93d1619..0000000
+--- a/node_modules/@wordpress/scripts/config/.eslintrc.js
++++ /dev/null
+@@ -1,27 +0,0 @@
+-/**
+- * Internal dependencies
+- */
+-const { hasBabelConfig } = require( '../utils' );
+-
+-const eslintConfig = {
+-	root: true,
+-	extends: [ 'plugin:@wordpress/eslint-plugin/recommended' ],
+-	overrides: [
+-		{
+-			// Unit test files and their helpers only.
+-			files: [ '**/@(test|__tests__)/**/*.js', '**/?(*.)test.js' ],
+-			extends: [ 'plugin:@wordpress/eslint-plugin/test-unit' ],
+-		},
+-	],
+-};
+-
+-if ( ! hasBabelConfig() ) {
+-	eslintConfig.parserOptions = {
+-		requireConfigFile: false,
+-		babelOptions: {
+-			presets: [ require.resolve( '@wordpress/babel-preset-default' ) ],
+-		},
+-	};
+-}
+-
+-module.exports = eslintConfig;
+diff --git a/node_modules/@wordpress/scripts/config/eslint.config.js b/node_modules/@wordpress/scripts/config/eslint.config.js
+new file mode 100644
+index 0000000..2f8407e
+--- /dev/null
++++ b/node_modules/@wordpress/scripts/config/eslint.config.js
+@@ -0,0 +1,48 @@
++/**
++ * External dependencies
++ */
++const babelParser = require( '@babel/eslint-parser' );
++/**
++ * Internal dependencies
++ */
++const { hasBabelConfig } = require( '../utils' );
++/**
++ * WordPress dependencies
++ */
++const wordPress = require( '@wordpress/eslint-plugin' );
++
++const eslintConfig = [
++	{
++		ignores: [ '**/build/', '**/node_modules/', '**/vendor/' ],
++	},
++	...wordPress.configs.flat.recommended.map( ( config ) => ( {
++		...config,
++		files: [ '**/.*js', '**/*.jsx', '**/*.ts', '**/*.tsx' ],
++	} ) ),
++	{
++		...wordPress.configs.flat[ 'test-unit' ],
++		// Unit test files and their helpers only.
++		files: [ '**/@(test|__tests__)/**/*.js', '**/?(*.)test.js' ],
++	},
++];
++
++if ( ! hasBabelConfig() ) {
++	eslintConfig.forEach( ( config ) => {
++		config.languageOptions = {
++			...config?.languageOptions,
++			parser: babelParser,
++			parserOptions: {
++				...config?.languageOptions?.parserOptions,
++				requireConfigFile: false,
++				babelOptions: {
++					configFile: false,
++					presets: [
++						require.resolve( '@wordpress/babel-preset-default' ),
++					],
++				},
++			},
++		};
++	} );
++}
++
++module.exports = eslintConfig;
+diff --git a/node_modules/@wordpress/scripts/scripts/lint-js.js b/node_modules/@wordpress/scripts/scripts/lint-js.js
+index 781e548..b42a3ea 100644
+--- a/node_modules/@wordpress/scripts/scripts/lint-js.js
++++ b/node_modules/@wordpress/scripts/scripts/lint-js.js
+@@ -12,18 +12,15 @@ const {
+ 	getArgsFromCLI,
+ 	hasArgInCLI,
+ 	hasFileArgInCLI,
+-	hasPackageProp,
+ 	hasProjectFile,
++	hasPackageProp,
+ } = require( '../utils' );
+ 
+ const args = getArgsFromCLI();
+ 
+ const defaultFilesArgs = hasFileArgInCLI() ? [] : [ '.' ];
+ 
+-// See: https://eslint.org/docs/user-guide/configuring#using-configuration-files-1.
+-const hasLintConfig =
+-	hasArgInCLI( '-c' ) ||
+-	hasArgInCLI( '--config' ) ||
++const hasLegacyLintConfig =
+ 	hasProjectFile( '.eslintrc.js' ) ||
+ 	hasProjectFile( '.eslintrc.json' ) ||
+ 	hasProjectFile( '.eslintrc.yaml' ) ||
+@@ -32,35 +29,69 @@ const hasLintConfig =
+ 	hasProjectFile( '.eslintrc' ) ||
+ 	hasPackageProp( 'eslintConfig' );
+ 
++if ( hasLegacyLintConfig ) {
++	// Backward compatibility with eslintrc mode.
++	// See: https://eslint.org/docs/latest/use/configure/configuration-files-deprecated.
++	const hasIgnoredFiles =
++		hasArgInCLI( '--ignore-path' ) || hasProjectFile( '.eslintignore' );
++
++	const legacyIgnoreArgs = ! hasIgnoredFiles
++		? [
++				'--ignore-pattern',
++				'build',
++				'--ignore-pattern',
++				'node_modules',
++				'--ignore-pattern',
++				'vendor',
++		  ]
++		: [];
++
++	const legacyExtArgs = hasArgInCLI( '--ext' )
++		? []
++		: [ '--ext', 'js,jsx,ts,tsx' ];
++
++	process.env.ESLINT_USE_FLAT_CONFIG = 'false';
++
++	const result = spawn(
++		resolveBin( 'eslint' ),
++		[ ...legacyIgnoreArgs, ...legacyExtArgs, ...args, ...defaultFilesArgs ],
++		{ stdio: 'inherit' }
++	);
++
++	process.emitWarning(
++		'Deprecated eslintrc configuration file detected. The support will be finished soon. See https://github.com/WordPress/gutenberg/pull/65648 for details.',
++		'WordPressScriptsWarning'
++	);
++
++	// Don't use process.exit, warnings are not shown that way.
++	return result.status;
++}
++
++// Enforce flat mode for ESLint v8.
++process.env.ESLINT_USE_FLAT_CONFIG = 'true';
++
++// See: https://eslint.org/docs/latest/use/configure/configuration-files.
++const hasLintConfig =
++	hasArgInCLI( '-c' ) ||
++	hasArgInCLI( '--config' ) ||
++	hasProjectFile( 'eslint.config.js' ) ||
++	hasProjectFile( 'eslint.config.mjs' ) ||
++	hasProjectFile( 'eslint.config.cjs' ) ||
++	hasProjectFile( 'eslint.config.ts' ) ||
++	hasProjectFile( 'eslint.config.mts' ) ||
++	hasProjectFile( 'eslint.config.cts' );
++
+ // When a configuration is not provided by the project, use from the default
+ // provided with the scripts module. Instruct ESLint to avoid discovering via
+-// the `--no-eslintrc` flag, as otherwise it will still merge with inherited.
++// the `--no-config-lookup` flag.
+ const defaultConfigArgs = ! hasLintConfig
+-	? [ '--no-eslintrc', '--config', fromConfigRoot( '.eslintrc.js' ) ]
++	? [ '--no-config-lookup', '--config', fromConfigRoot( 'eslint.config.js' ) ]
+ 	: [];
+ 
+-// See: https://eslint.org/docs/user-guide/configuring#ignoring-files-and-directories.
+-const hasIgnoredFiles =
+-	hasArgInCLI( '--ignore-path' ) || hasProjectFile( '.eslintignore' );
+-
+-const defaultIgnoreArgs = ! hasIgnoredFiles
+-	? [ '--ignore-path', fromConfigRoot( '.eslintignore' ) ]
+-	: [];
+-
+-const defaultExtArgs = hasArgInCLI( '--ext' )
+-	? []
+-	: [ '--ext', 'js,jsx,ts,tsx' ];
+-
+ const result = spawn(
+ 	resolveBin( 'eslint' ),
+-	[
+-		...defaultConfigArgs,
+-		...defaultIgnoreArgs,
+-		...defaultExtArgs,
+-		...args,
+-		...defaultFilesArgs,
+-	],
++	[ ...defaultConfigArgs, ...args, ...defaultFilesArgs ],
+ 	{ stdio: 'inherit' }
+ );
+ 
+-process.exit( result.status );
++return result.status;
+diff --git a/node_modules/@wordpress/scripts/scripts/lint-style.js b/node_modules/@wordpress/scripts/scripts/lint-style.js
+index ef8b0ad..103ec6d 100644
+--- a/node_modules/@wordpress/scripts/scripts/lint-style.js
++++ b/node_modules/@wordpress/scripts/scripts/lint-style.js
+@@ -20,7 +20,7 @@ const args = getArgsFromCLI();
+ 
+ const defaultFilesArgs = hasFileArgInCLI() ? [] : [ '**/*.{css,pcss,scss}' ];
+ 
+-// See: https://stylelint.io/user-guide/configure/
++// See: https://stylelint.io/user-guide/configuration
+ const hasLintConfig =
+ 	hasArgInCLI( '--config' ) ||
+ 	hasProjectFile( '.stylelintrc.js' ) ||
+diff --git a/node_modules/@wordpress/scripts/utils/config.js b/node_modules/@wordpress/scripts/utils/config.js
+index 8894819..3d99f37 100644
+--- a/node_modules/@wordpress/scripts/utils/config.js
++++ b/node_modules/@wordpress/scripts/utils/config.js
+@@ -9,7 +9,6 @@ const { sync: glob } = require( 'fast-glob' );
+  * Internal dependencies
+  */
+ const {
+-	getArgFromCLI,
+ 	getArgsFromCLI,
+ 	getFileArgsFromCLI,
+ 	hasArgInCLI,
+@@ -114,43 +113,10 @@ const hasPostCSSConfig = () =>
+ const getWebpackArgs = () => {
+ 	// Gets all args from CLI without those prefixed with `--webpack`.
+ 	let webpackArgs = getArgsFromCLI( [
+-		'--blocks-manifest',
+ 		'--experimental-modules',
+-		'--source-path',
+ 		'--webpack',
+ 	] );
+ 
+-	if ( hasArgInCLI( '--experimental-modules' ) ) {
+-		process.env.WP_EXPERIMENTAL_MODULES = true;
+-	}
+-
+-	if ( hasArgInCLI( '--source-path' ) ) {
+-		process.env.WP_SOURCE_PATH = getArgFromCLI( '--source-path' );
+-	} else if ( hasArgInCLI( '--webpack-src-dir' ) ) {
+-		// Backwards compatibility.
+-		process.env.WP_SOURCE_PATH = getArgFromCLI( '--webpack-src-dir' );
+-	}
+-
+-	if ( hasArgInCLI( '--webpack-bundle-analyzer' ) ) {
+-		process.env.WP_BUNDLE_ANALYZER = true;
+-	}
+-
+-	if ( hasArgInCLI( '--webpack-copy-php' ) ) {
+-		process.env.WP_COPY_PHP_FILES_TO_DIST = true;
+-	}
+-
+-	if ( hasArgInCLI( '--webpack--devtool' ) ) {
+-		process.env.WP_DEVTOOL = getArgFromCLI( '--webpack--devtool' );
+-	}
+-
+-	if ( hasArgInCLI( '--webpack-no-externals' ) ) {
+-		process.env.WP_NO_EXTERNALS = true;
+-	}
+-
+-	if ( hasArgInCLI( '--blocks-manifest' ) ) {
+-		process.env.WP_BLOCKS_MANIFEST = true;
+-	}
+-
+ 	const hasWebpackOutputOption =
+ 		hasArgInCLI( '-o' ) || hasArgInCLI( '--output' );
+ 	if (
+@@ -170,6 +136,10 @@ const getWebpackArgs = () => {
+ 		const pathToEntry = ( path ) => {
+ 			const entryName = basename( path, '.js' );
+ 
++			if ( ! path.startsWith( './' ) ) {
++				path = './' + path;
++			}
++
+ 			return [ entryName, path ];
+ 		};
+ 
+@@ -192,11 +162,7 @@ const getWebpackArgs = () => {
+ 				const [ entryName, path ] = fileArg.includes( '=' )
+ 					? fileArg.split( '=' )
+ 					: pathToEntry( fileArg );
+-				entry[ entryName ] = fromProjectRoot(
+-					process.env.WP_SOURCE_PATH
+-						? join( process.env.WP_SOURCE_PATH, path )
+-						: path
+-				);
++				entry[ entryName ] = path;
+ 			} );
+ 			process.env.WP_ENTRY = JSON.stringify( entry );
+ 		}
+@@ -210,20 +176,20 @@ const getWebpackArgs = () => {
+ };
+ 
+ /**
+- * Returns the project source path. It defaults to 'src' if the
+- * `process.env.WP_SOURCE_PATH` variable is not set.
++ * Returns the WordPress source directory. It defaults to 'src' if the
++ * `process.env.WP_SRC_DIRECTORY` variable is not set.
+  *
+  * @return {string} The WordPress source directory.
+  */
+-function getProjectSourcePath() {
+-	return process.env.WP_SOURCE_PATH || 'src';
++function getWordPressSrcDirectory() {
++	return process.env.WP_SRC_DIRECTORY || 'src';
+ }
+ 
+ /**
+- * Detects the list of entry points to use with webpack. There are three alternative ways to do this:
+- *  1. Use the recommended command format that lists the paths to JavaScript files.
+- *  2. Scan `block.json` files to detect referenced JavaScript and PHP files automatically.
+- *  3. Fallback to the `src/index.*` file.
++ * Detects the list of entry points to use with webpack. There are three ways to do this:
++ *  1. Use the legacy webpack 4 format passed as CLI arguments.
++ *  2. Scan `block.json` files for scripts.
++ *  3. Fallback to `src/index.*` file.
+  *
+  * @see https://webpack.js.org/concepts/entry-points/
+  *
+@@ -234,32 +200,31 @@ function getWebpackEntryPoints( buildType ) {
+ 	 * @return {Object<string,string>} The list of entry points.
+ 	 */
+ 	return () => {
+-		// 1. Uses the recommended command format that lists entry points as paths to JavaScript files.
+-		//    Example: `wp-scripts build one.js two.js`.
++		// 1. Handles the legacy format for entry points when explicitly provided with the `process.env.WP_ENTRY`.
+ 		if ( process.env.WP_ENTRY ) {
+ 			return buildType === 'script'
+ 				? JSON.parse( process.env.WP_ENTRY )
+ 				: {};
+ 		}
+ 
+-		// Continues only if the source directory exists. Defaults to "src" if not explicitly set in the command.
+-		if ( ! hasProjectFile( getProjectSourcePath() ) ) {
++		// Continue only if the source directory exists.
++		if ( ! hasProjectFile( getWordPressSrcDirectory() ) ) {
+ 			warn(
+-				`Source directory "${ getProjectSourcePath() }" was not found. Please confirm there is a "src" directory in the root or the value passed with "--output-path" is correct.`
++				`Source directory "${ getWordPressSrcDirectory() }" was not found. Please confirm there is a "src" directory in the root or the value passed to --webpack-src-dir is correct.`
+ 			);
+ 			return {};
+ 		}
+ 
+ 		// 2. Checks whether any block metadata files can be detected in the defined source directory.
+-		//    It scans all discovered files, looks for JavaScript assets, and converts them to entry points.
++		//    It scans all discovered files looking for JavaScript assets and converts them to entry points.
+ 		const blockMetadataFiles = glob( '**/block.json', {
+ 			absolute: true,
+-			cwd: fromProjectRoot( getProjectSourcePath() ),
++			cwd: fromProjectRoot( getWordPressSrcDirectory() ),
+ 		} );
+ 
+ 		if ( blockMetadataFiles.length > 0 ) {
+ 			const srcDirectory = fromProjectRoot(
+-				getProjectSourcePath() + sep
++				getWordPressSrcDirectory() + sep
+ 			);
+ 
+ 			const entryPoints = {};
+@@ -311,7 +276,7 @@ function getWebpackEntryPoints( buildType ) {
+ 							) }" listed in "${ blockMetadataFile.replace(
+ 								fromProjectRoot( sep ),
+ 								''
+-							) }". File is located outside of the "${ getProjectSourcePath() }" directory.`
++							) }". File is located outside of the "${ getWordPressSrcDirectory() }" directory.`
+ 						);
+ 						continue;
+ 					}
+@@ -325,7 +290,7 @@ function getWebpackEntryPoints( buildType ) {
+ 						`${ entryName }.?(m)[jt]s?(x)`,
+ 						{
+ 							absolute: true,
+-							cwd: fromProjectRoot( getProjectSourcePath() ),
++							cwd: fromProjectRoot( getWordPressSrcDirectory() ),
+ 						}
+ 					);
+ 
+@@ -337,7 +302,7 @@ function getWebpackEntryPoints( buildType ) {
+ 							) }" listed in "${ blockMetadataFile.replace(
+ 								fromProjectRoot( sep ),
+ 								''
+-							) }". File does not exist in the "${ getProjectSourcePath() }" directory.`
++							) }". File does not exist in the "${ getWordPressSrcDirectory() }" directory.`
+ 						);
+ 						continue;
+ 					}
+@@ -357,15 +322,15 @@ function getWebpackEntryPoints( buildType ) {
+ 		}
+ 
+ 		// 3. Checks whether a standard file name can be detected in the defined source directory,
+-		//    and converts the discovered file to entry point.
++		//  and converts the discovered file to entry point.
+ 		const [ entryFile ] = glob( 'index.[jt]s?(x)', {
+ 			absolute: true,
+-			cwd: fromProjectRoot( getProjectSourcePath() ),
++			cwd: fromProjectRoot( getWordPressSrcDirectory() ),
+ 		} );
+ 
+ 		if ( ! entryFile ) {
+ 			warn(
+-				`No entry file discovered in the "${ getProjectSourcePath() }" directory.`
++				`No entry file discovered in the "${ getWordPressSrcDirectory() }" directory.`
+ 			);
+ 			return {};
+ 		}
+@@ -447,10 +412,10 @@ function getPhpFilePaths( context, props ) {
+ 
+ module.exports = {
+ 	getJestOverrideConfigFile,
+-	getPhpFilePaths,
+-	getProjectSourcePath,
+ 	getWebpackArgs,
++	getWordPressSrcDirectory,
+ 	getWebpackEntryPoints,
++	getPhpFilePaths,
+ 	hasBabelConfig,
+ 	hasCssnanoConfig,
+ 	hasJestConfig,
