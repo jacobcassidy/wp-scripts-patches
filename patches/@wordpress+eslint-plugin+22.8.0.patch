@@ -1,0 +1,807 @@
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/custom.js b/node_modules/@wordpress/eslint-plugin/configs/flat/custom.js
+new file mode 100644
+index 0000000..da17112
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/custom.js
+@@ -0,0 +1,38 @@
++module.exports = [
++	{
++		name: '@wordpress/custom/common',
++		plugins: {
++			'@wordpress': require( '../../plugin' ),
++		},
++		rules: {
++			'@wordpress/no-unused-vars-before-return': 'error',
++			'@wordpress/no-base-control-with-label-without-id': 'error',
++			'@wordpress/no-unguarded-get-range-at': 'error',
++			'@wordpress/no-global-active-element': 'error',
++			'@wordpress/no-global-get-selection': 'error',
++			'@wordpress/no-unsafe-wp-apis': 'error',
++			'@wordpress/no-wp-process-env': 'error',
++		},
++	},
++	{
++		name: '@wordpress/custom/native',
++		files: [ '*.native.js' ],
++		rules: {
++			'@wordpress/no-base-control-with-label-without-id': 'off',
++			'@wordpress/i18n-no-flanking-whitespace': 'error',
++			'@wordpress/i18n-hyphenated-range': 'error',
++		},
++	},
++	{
++		name: '@wordpress/custom/test',
++		files: [
++			'*.test.js',
++			'**/test/*.js',
++			'packages/e2e-test-utils/**/*.js',
++		],
++		rules: {
++			'@wordpress/no-global-active-element': 'off',
++			'@wordpress/no-global-get-selection': 'off',
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/es5.js b/node_modules/@wordpress/eslint-plugin/configs/flat/es5.js
+new file mode 100644
+index 0000000..b43bf57
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/es5.js
+@@ -0,0 +1,101 @@
++module.exports = [
++	...require( './jsdoc.js' ),
++	{
++		name: '@wordpress/es5',
++		rules: {
++			'array-bracket-spacing': [ 'error', 'always' ],
++			'array-callback-return': 'error',
++			'brace-style': [ 'error', '1tbs' ],
++			camelcase: [
++				'error',
++				{
++					properties: 'never',
++				},
++			],
++			'comma-dangle': [ 'error', 'always-multiline' ],
++			'comma-spacing': 'error',
++			'comma-style': [ 'error', 'last' ],
++			curly: [ 'error', 'all' ],
++			'dot-notation': 'error',
++			'eol-last': 'error',
++			eqeqeq: 'error',
++			'func-call-spacing': 'error',
++			indent: [ 'error', 'tab', { SwitchCase: 1 } ],
++			'key-spacing': 'error',
++			'keyword-spacing': 'error',
++			'linebreak-style': [ 'error', 'unix' ],
++			'no-alert': 'error',
++			'no-bitwise': 'error',
++			'no-caller': 'error',
++			'no-cond-assign': [ 'error', 'except-parens' ],
++			'no-console': 'error',
++			'no-debugger': 'error',
++			'no-dupe-args': 'error',
++			'no-dupe-keys': 'error',
++			'no-duplicate-case': 'error',
++			'no-else-return': 'error',
++			'no-eval': 'error',
++			'no-extra-semi': 'error',
++			'no-fallthrough': 'error',
++			'no-irregular-whitespace': 'error',
++			'no-lonely-if': 'error',
++			'no-multi-str': 'error',
++			'no-mixed-operators': 'error',
++			'no-mixed-spaces-and-tabs': 'error',
++			'no-multiple-empty-lines': [ 'error', { max: 1 } ],
++			'no-multi-spaces': 'error',
++			'no-nested-ternary': 'error',
++			'no-redeclare': 'error',
++			'no-shadow': 'error',
++			'no-trailing-spaces': 'error',
++			'no-undef': 'error',
++			'no-undef-init': 'error',
++			'no-unreachable': 'error',
++			'no-unsafe-negation': 'error',
++			'no-unused-expressions': 'error',
++			'no-unused-vars': [
++				'error',
++				{ ignoreRestSiblings: true, caughtErrors: 'none' },
++			],
++			'no-useless-return': 'error',
++			'no-whitespace-before-property': 'error',
++			'no-with': 'error',
++			'object-curly-spacing': [ 'error', 'always' ],
++			'one-var-declaration-per-line': [ 'error', 'initializations' ],
++			'operator-linebreak': 'error',
++			'padded-blocks': [ 'error', 'never' ],
++			'quote-props': [ 'error', 'as-needed' ],
++			quotes: [ 'error', 'single', { avoidEscape: true } ],
++			semi: 'error',
++			'semi-spacing': 'error',
++			'space-before-blocks': [ 'error', 'always' ],
++			'space-before-function-paren': [
++				'error',
++				{
++					anonymous: 'never',
++					named: 'never',
++					asyncArrow: 'always',
++				},
++			],
++			'space-in-parens': [
++				'error',
++				'always',
++				{
++					exceptions: [ 'empty' ],
++				},
++			],
++			'space-infix-ops': 'error',
++			'space-unary-ops': [
++				'error',
++				{
++					overrides: {
++						'!': true,
++					},
++				},
++			],
++			'valid-typeof': 'error',
++			'vars-on-top': 'error',
++			'wrap-iife': 'error',
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/esnext.js b/node_modules/@wordpress/eslint-plugin/configs/flat/esnext.js
+new file mode 100644
+index 0000000..085e1e6
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/esnext.js
+@@ -0,0 +1,77 @@
++/**
++ * External dependencies
++ */
++const { cosmiconfigSync } = require( 'cosmiconfig' );
++const ESLintParser = require( '@babel/eslint-parser' );
++const babelParser = require( '@babel/eslint-parser' );
++
++const config = {
++	name: '@wordpress/esnext',
++	languageOptions: {
++		ecmaVersion: 6,
++		parser: ESLintParser,
++		parserOptions: {
++			sourceType: 'module',
++		},
++	},
++	rules: {
++		// Disable ES5-specific (extended from ES5)
++		'vars-on-top': 'off',
++
++		// Enable ESNext-specific.
++		'arrow-parens': [ 'error', 'always' ],
++		'arrow-spacing': 'error',
++		'computed-property-spacing': [ 'error', 'always' ],
++		'constructor-super': 'error',
++		'no-const-assign': 'error',
++		'no-dupe-class-members': 'error',
++		'no-duplicate-imports': 'error',
++		'no-useless-computed-key': 'error',
++		'no-useless-constructor': 'error',
++		'no-var': 'error',
++		'object-shorthand': 'error',
++		'prefer-const': [
++			'error',
++			{
++				destructuring: 'all',
++			},
++		],
++		quotes: [
++			'error',
++			'single',
++			{ allowTemplateLiterals: true, avoidEscape: true },
++		],
++		'space-unary-ops': [
++			'error',
++			{
++				overrides: {
++					'!': true,
++					yield: true,
++				},
++			},
++		],
++		'template-curly-spacing': [ 'error', 'always' ],
++	},
++};
++
++// It won't recognize the `babel.config.json` file used in the project until the upstream bug in `cosmiconfig` is fixed:
++// https://github.com/davidtheclark/cosmiconfig/issues/246.
++const result = cosmiconfigSync( 'babel' ).search();
++if ( ! result || ! result.filepath ) {
++	config.languageOptions = {
++		...config?.languageOptions,
++		parser: babelParser,
++		parserOptions: {
++			...config?.languageOptions?.parserOptions,
++			requireConfigFile: false,
++			babelOptions: {
++				configFile: false,
++				presets: [
++					require.resolve( '@wordpress/babel-preset-default' ),
++				],
++			},
++		},
++	};
++}
++
++module.exports = [ ...require( './es5.js' ), config ];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/i18n.js b/node_modules/@wordpress/eslint-plugin/configs/flat/i18n.js
+new file mode 100644
+index 0000000..fd932dc
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/i18n.js
+@@ -0,0 +1,17 @@
++module.exports = {
++	name: '@wordpress/i18n',
++	plugins: {
++		'@wordpress': require( '../../plugin' ),
++	},
++	rules: {
++		'@wordpress/valid-sprintf': 'error',
++		'@wordpress/i18n-translator-comments': 'error',
++		'@wordpress/i18n-text-domain': 'error',
++		'@wordpress/i18n-no-collapsible-whitespace': 'error',
++		'@wordpress/i18n-no-placeholders-only': 'error',
++		'@wordpress/i18n-no-variables': 'error',
++		'@wordpress/i18n-ellipsis': 'error',
++		'@wordpress/i18n-no-flanking-whitespace': 'error',
++		'@wordpress/i18n-hyphenated-range': 'error',
++	},
++};
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/index.js b/node_modules/@wordpress/eslint-plugin/configs/flat/index.js
+new file mode 100644
+index 0000000..035c09a
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/index.js
+@@ -0,0 +1 @@
++module.exports = require( 'requireindex' )( __dirname );
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/jsdoc.js b/node_modules/@wordpress/eslint-plugin/configs/flat/jsdoc.js
+new file mode 100644
+index 0000000..d004ec9
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/jsdoc.js
+@@ -0,0 +1,157 @@
++/**
++ * External dependencies
++ */
++const globals = require( 'globals' );
++const jsdoc = require( 'eslint-plugin-jsdoc' );
++
++/**
++ * The temporary list of types defined in Gutenberg which are allowed to avoid
++ * ESLint warnings. It should be removed once importing is going to be implemented
++ * in the tool which generates public APIs from JSDoc comments. Related issue to
++ * fix the root cause `@wordpress/docgen`:
++ * https://github.com/WordPress/gutenberg/issues/18045.
++ */
++const temporaryWordPressInternalTypes = [
++	'WPBlockChildren',
++	'WPBlockNode',
++	'WPBlockSelection',
++	'WPBlockSerializationOptions',
++	'WPBlock',
++	'WPBlockPattern',
++	'WPBlockType',
++	'WPBlockTypeIcon',
++	'WPBlockTypeIconRender',
++	'WPBlockTypeIconDescriptor',
++	'WPIcon',
++
++	// These two should be removed once we use the TS types from "react".
++	'Component',
++	'Element',
++];
++
++/**
++ * The temporary list of external types used in Gutenberg which are allowed
++ * to avoid ESLint warnings. It's similar to `wordpressInternalTypes` and it
++ * should be removed once the related issues is fixed:
++ * https://github.com/WordPress/gutenberg/issues/18045
++ */
++const temporaryExternalTypes = [ 'DOMHighResTimeStamp', 'espree' ];
++
++/**
++ * Helpful utilities that are globally defined and known to the TypeScript compiler.
++ *
++ * @see http://www.typescriptlang.org/docs/handbook/utility-types.html
++ */
++const typescriptUtilityTypes = [
++	'ArrayLike',
++	'Exclude',
++	'Extract',
++	'InstanceType',
++	'Iterable',
++	'IterableIterator',
++	'NonNullable',
++	'Omit',
++	'Parameters',
++	'Partial',
++	'Pick',
++	'PromiseLike',
++	'Readonly',
++	'ReadonlyArray',
++	'ReadonlyMap',
++	'ReadonlySet',
++	'Record',
++	'Required',
++	'ReturnType',
++	'ThisType',
++	'unknown',
++	'never',
++	'NodeJS',
++	'AsyncIterableIterator',
++	'NodeRequire',
++	'true',
++	'false',
++];
++
++module.exports = [
++	jsdoc.configs[ 'flat/recommended' ],
++	{
++		name: '@wordpress/jsdoc',
++		settings: {
++			jsdoc: {
++				preferredTypes: {
++					object: 'Object',
++				},
++				tagNamePreference: {
++					returns: 'return',
++					yields: 'yield',
++				},
++			},
++		},
++		rules: {
++			'jsdoc/no-defaults': 'off',
++			'jsdoc/no-undefined-types': [
++				'error',
++				{
++					definedTypes: [
++						// Required to reference browser types because we don't have the `browser` environment enabled for the project.
++						// Here we filter out all browser globals that don't begin with an uppercase letter because those
++						// generally refer to window-level event listeners and are not a valid type to reference (e.g. `onclick`).
++						...Object.keys( globals.browser ).filter( ( k ) =>
++							/^[A-Z]/.test( k )
++						),
++						...typescriptUtilityTypes,
++						...temporaryWordPressInternalTypes,
++						...temporaryExternalTypes,
++						'void',
++						'JSX',
++					],
++				},
++			],
++			'jsdoc/require-jsdoc': 'off',
++			'jsdoc/require-param-description': 'off',
++			'jsdoc/require-returns': 'off',
++			'jsdoc/require-yields': 'off',
++			'jsdoc/tag-lines': [
++				1,
++				'any',
++				{
++					startLines: null,
++					endLines: 0,
++					applyToEndTag: false,
++				},
++			],
++			'jsdoc/no-multi-asterisks': [
++				'error',
++				{ preventAtMiddleLines: false },
++			],
++			'jsdoc/check-access': 'error',
++			'jsdoc/check-alignment': 'error',
++			'jsdoc/check-line-alignment': [
++				'error',
++				'always',
++				{
++					tags: [ 'param', 'arg', 'argument', 'property', 'prop' ],
++					preserveMainDescriptionPostDelimiter: true,
++				},
++			],
++			'jsdoc/check-param-names': 'error',
++			'jsdoc/check-property-names': 'error',
++			'jsdoc/check-tag-names': 'error',
++			'jsdoc/check-types': 'error',
++			'jsdoc/check-values': 'off',
++			'jsdoc/empty-tags': 'error',
++			'jsdoc/implements-on-classes': 'error',
++			'jsdoc/require-param': 'error',
++			'jsdoc/require-param-name': 'error',
++			'jsdoc/require-param-type': 'error',
++			'jsdoc/require-property': 'error',
++			'jsdoc/require-property-description': 'error',
++			'jsdoc/require-property-name': 'error',
++			'jsdoc/require-property-type': 'error',
++			'jsdoc/require-returns-check': 'error',
++			'jsdoc/require-returns-description': 'error',
++			'jsdoc/require-returns-type': 'error',
++			'jsdoc/valid-types': 'error',
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/jshint.js b/node_modules/@wordpress/eslint-plugin/configs/flat/jshint.js
+new file mode 100644
+index 0000000..61e08e4
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/jshint.js
+@@ -0,0 +1,21 @@
++module.exports = {
++	name: '@wordpress/jshint',
++	rules: {
++		curly: 'error',
++		eqeqeq: 'error',
++		'no-caller': 'error',
++		'no-cond-assign': [ 'error', 'except-parens' ],
++		'no-eq-null': 'error',
++		'no-irregular-whitespace': 'error',
++		'no-trailing-spaces': 'error',
++		'no-undef': 'error',
++		'no-unused-expressions': 'error',
++		'no-unused-vars': [
++			'error',
++			{ ignoreRestSiblings: true, caughtErrors: 'none' },
++		],
++		'one-var': [ 'error', 'always' ],
++		quotes: [ 'error', 'single' ],
++		'wrap-iife': [ 'error', 'any' ],
++	},
++};
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/jsx-a11y.js b/node_modules/@wordpress/eslint-plugin/configs/flat/jsx-a11y.js
+new file mode 100644
+index 0000000..7189dd5
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/jsx-a11y.js
+@@ -0,0 +1,23 @@
++/**
++ * External dependencies
++ */
++const jsxA11y = require( 'eslint-plugin-jsx-a11y' );
++
++module.exports = [
++	jsxA11y.flatConfigs.recommended,
++	{
++		name: '@wordpress/jsx-a11y',
++		rules: {
++			'jsx-a11y/label-has-associated-control': [
++				'error',
++				{
++					assert: 'htmlFor',
++				},
++			],
++			'jsx-a11y/media-has-caption': 'off',
++			'jsx-a11y/no-noninteractive-tabindex': 'off',
++			'jsx-a11y/role-has-required-aria-props': 'off',
++			'jsx-quotes': 'error',
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/react.js b/node_modules/@wordpress/eslint-plugin/configs/flat/react.js
+new file mode 100644
+index 0000000..e88e0ab
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/react.js
+@@ -0,0 +1,60 @@
++/**
++ * External dependencies
++ */
++const react = require( 'eslint-plugin-react' );
++const reactHooks = require( 'eslint-plugin-react-hooks' );
++
++module.exports = [
++	react.configs.flat.recommended,
++	{
++		name: '@wordpress/react',
++		languageOptions: {
++			parserOptions: {
++				ecmaFeatures: {
++					jsx: true,
++				},
++			},
++		},
++		settings: {
++			react: {
++				version: 'detect',
++			},
++		},
++		plugins: {
++			'@wordpress': require( '../../plugin' ),
++			react,
++			'react-hooks': reactHooks,
++		},
++		rules: {
++			'@wordpress/no-unused-vars-before-return': [
++				'error',
++				{
++					excludePattern: '^use',
++				},
++			],
++			'react/display-name': 'off',
++			'react/jsx-curly-spacing': [
++				'error',
++				{
++					when: 'always',
++					children: true,
++				},
++			],
++			'react/jsx-equals-spacing': 'error',
++			'react/jsx-indent': [ 'error', 'tab' ],
++			'react/jsx-indent-props': [ 'error', 'tab' ],
++			'react/jsx-key': 'error',
++			'react/jsx-tag-spacing': 'error',
++			'react/no-children-prop': 'off',
++			'react/prop-types': 'off',
++			'react/react-in-jsx-scope': 'off',
++			'react-hooks/exhaustive-deps': [
++				'warn',
++				{
++					additionalHooks: '^(useSelect|useSuspenseSelect)$',
++				},
++			],
++			'react-hooks/rules-of-hooks': 'error',
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/recommended-with-formatting.js b/node_modules/@wordpress/eslint-plugin/configs/flat/recommended-with-formatting.js
+new file mode 100644
+index 0000000..5420d15
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/recommended-with-formatting.js
+@@ -0,0 +1,51 @@
++/**
++ * External dependencies
++ */
++const globals = require( 'globals' );
++const importPlugin = require( 'eslint-plugin-import' );
++
++// Exclude bundled WordPress packages from the list.
++const wpPackagesRegExp = '^@wordpress/(?!(icons|interface|style-engine))';
++
++const config = [
++	...require( './jsx-a11y.js' ),
++	...require( './custom.js' ),
++	...require( './react.js' ),
++	...require( './esnext.js' ),
++	require( './i18n.js' ),
++	{
++		name: '@wordpress/formatting',
++		plugins: { import: importPlugin },
++		languageOptions: {
++			globals: {
++				...globals.node,
++				window: true,
++				document: true,
++				SCRIPT_DEBUG: 'readonly',
++				wp: 'readonly',
++			},
++		},
++		settings: {
++			'import/internal-regex': wpPackagesRegExp,
++			'import/extensions': [ '.js', '.jsx' ],
++		},
++		rules: {
++			'import/no-extraneous-dependencies': [
++				'error',
++				{
++					peerDependencies: true,
++				},
++			],
++			'import/no-unresolved': [
++				'error',
++				{
++					ignore: [ wpPackagesRegExp ],
++				},
++			],
++			'import/default': 'warn',
++			'import/named': 'warn',
++		},
++	},
++];
++
++module.exports = config;
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/recommended.js b/node_modules/@wordpress/eslint-plugin/configs/flat/recommended.js
+new file mode 100644
+index 0000000..383b8f5
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/recommended.js
+@@ -0,0 +1,76 @@
++/**
++ * External dependencies
++ */
++const { cosmiconfigSync } = require( 'cosmiconfig' );
++const eslintConfigPrettier = require( 'eslint-config-prettier' );
++const tseslint = require( 'typescript-eslint' );
++const prettierRecommended = require( 'eslint-plugin-prettier/recommended' );
++
++/**
++ * WordPress dependencies
++ */
++
++/**
++ * Internal dependencies
++ */
++const { isPackageInstalled } = require( '../../utils' );
++const defaultPrettierConfig = require( '@wordpress/prettier-config' );
++
++const config = [ ...require( './recommended-with-formatting.js' ) ];
++
++if ( isPackageInstalled( 'typescript' ) ) {
++	const typeScriptConfig = tseslint.config( {
++		extends: [ tseslint.configs.base, tseslint.configs.eslintRecommended ],
++		files: [ '**/*.ts', '**/*.tsx' ],
++		settings: {
++			'import/resolver': {
++				node: {
++					extensions: [ '.js', '.jsx', '.ts', '.tsx' ],
++				},
++			},
++		},
++		rules: {
++			'no-duplicate-imports': 'off',
++			'import/no-duplicates': 'error',
++			// Don't require redundant JSDoc types in TypeScript files.
++			'jsdoc/require-param-type': 'off',
++			'jsdoc/require-returns-type': 'off',
++			// Use eslint for unused variable and parameter detection.
++			// This overlaps with TypeScript noUnusedLocals and noUnusedParameters settings.
++			// TypeScript may only run on a subset of files. Prefer eslint which is more
++			// likely to run on the entire codebase.
++			'no-unused-vars': 'off',
++			'@typescript-eslint/no-unused-vars': [
++				'error',
++				{ ignoreRestSiblings: true, caughtErrors: 'none' },
++			],
++			// no-shadow doesn't work correctly in TS, so let's use a TS-dedicated version instead.
++			'no-shadow': 'off',
++			'@typescript-eslint/no-shadow': 'error',
++			'@typescript-eslint/method-signature-style': 'error',
++		},
++	} );
++
++	config.push( ...typeScriptConfig );
++}
++
++if ( isPackageInstalled( 'prettier' ) ) {
++	config.push( eslintConfigPrettier );
++
++	const { config: localPrettierConfig } =
++		cosmiconfigSync( 'prettier' ).search() || {};
++	const prettierConfig = { ...defaultPrettierConfig, ...localPrettierConfig };
++	config.push( prettierRecommended, {
++		rules: {
++			'prettier/prettier': [ 'error', prettierConfig ],
++			// Prettier _disables_ this rule, but we want it!
++			// See https://github.com/prettier/eslint-config-prettier?tab=readme-ov-file#curly
++			// > This rule requires certain options.
++			// > …
++			// > If you like this rule, it can be used just fine with Prettier as long as you don’t use the "multi-line" or "multi-or-nest" option.
++			curly: [ 'error', 'all' ],
++		},
++	} );
++}
++
++module.exports = config;
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/test-e2e.js b/node_modules/@wordpress/eslint-plugin/configs/flat/test-e2e.js
+new file mode 100644
+index 0000000..8d369c6
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/test-e2e.js
+@@ -0,0 +1,19 @@
++/**
++ * External dependencies
++ */
++const jest = require( 'eslint-plugin-jest' );
++const globals = require( 'globals' );
++
++module.exports = {
++	...jest.configs[ 'flat/recommended' ],
++	name: '@wordpress/test-e2e',
++	languageOptions: {
++		globals: {
++			...jest.configs[ 'flat/recommended' ].languageOptions.globals,
++			...globals.browser,
++			browser: 'readonly',
++			page: 'readonly',
++			wp: 'readonly',
++		},
++	},
++};
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/test-playwright.js b/node_modules/@wordpress/eslint-plugin/configs/flat/test-playwright.js
+new file mode 100644
+index 0000000..72b7b0a
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/test-playwright.js
+@@ -0,0 +1,9 @@
++/**
++ * External dependencies
++ */
++const playwright = require( 'eslint-plugin-playwright' );
++
++module.exports = {
++	...playwright.configs[ 'flat/recommended' ],
++	name: '@wordpress/test-playwright',
++};
+diff --git a/node_modules/@wordpress/eslint-plugin/configs/flat/test-unit.js b/node_modules/@wordpress/eslint-plugin/configs/flat/test-unit.js
+new file mode 100644
+index 0000000..3ce2d7d
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/configs/flat/test-unit.js
+@@ -0,0 +1,17 @@
++/**
++ * External dependencies
++ */
++const jest = require( 'eslint-plugin-jest' );
++
++module.exports = [
++	jest.configs[ 'flat/recommended' ],
++	{
++		name: '@wordpress/test-unit',
++		rules: {
++			'jest/expect-expect': [
++				'error',
++				{ assertFunctionNames: [ 'expect', 'measurePerformance' ] },
++			],
++		},
++	},
++];
+diff --git a/node_modules/@wordpress/eslint-plugin/index.js b/node_modules/@wordpress/eslint-plugin/index.js
+index fcba80b..6bad903 100644
+--- a/node_modules/@wordpress/eslint-plugin/index.js
++++ b/node_modules/@wordpress/eslint-plugin/index.js
+@@ -1,4 +1,8 @@
+-module.exports = {
+-	configs: require( './configs' ),
+-	rules: require( './rules' ),
+-};
++/**
++ * Internal dependencies
++ */
++const plugin = require( './plugin' );
++
++Object.assign( plugin.configs, require( './configs' ) );
++
++module.exports = plugin;
+diff --git a/node_modules/@wordpress/eslint-plugin/plugin.js b/node_modules/@wordpress/eslint-plugin/plugin.js
+new file mode 100644
+index 0000000..569d6b1
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/plugin.js
+@@ -0,0 +1,13 @@
++/**
++ * Internal dependencies
++ */
++const { name, version } = require( './package.json' );
++
++module.exports = {
++	meta: {
++		name,
++		version,
++	},
++	configs: {},
++	rules: require( './rules' ),
++};
+diff --git a/node_modules/@wordpress/eslint-plugin/tsconfig.json b/node_modules/@wordpress/eslint-plugin/tsconfig.json
+new file mode 100644
+index 0000000..a769c50
+--- /dev/null
++++ b/node_modules/@wordpress/eslint-plugin/tsconfig.json
+@@ -0,0 +1,14 @@
++{
++	"$schema": "https://json.schemastore.org/tsconfig.json",
++	"extends": "../../tsconfig.base.json",
++	"compilerOptions": {
++		"module": "CommonJS",
++		"rootDir": "rules"
++	},
++	"references": [ { "path": "../prettier-config" } ],
++	// NOTE: This package is being progressively typed. You are encouraged to
++	// expand this array with files which can be type-checked. At some point in
++	// the future, this can be simplified to an `includes` of `src/**/*`.
++	"files": [ "rules/dependency-group.js", "rules/no-unsafe-wp-apis.js" ],
++	"include": []
++}
