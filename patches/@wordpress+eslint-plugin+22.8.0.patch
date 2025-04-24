@@ -785,6 +785,143 @@ index 0000000..569d6b1
 +	configs: {},
 +	rules: require( './rules' ),
 +};
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/data-no-store-string-literals.js b/node_modules/@wordpress/eslint-plugin/rules/data-no-store-string-literals.js
+index 1b977ed..2bec4e5 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/data-no-store-string-literals.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/data-no-store-string-literals.js
+@@ -31,7 +31,7 @@ function arrayLast( array ) {
+ function getReferences( context, specifiers ) {
+ 	const variables = specifiers.reduce(
+ 		( acc, specifier ) =>
+-			acc.concat( context.getDeclaredVariables( specifier ) ),
++			acc.concat( context.sourceCode.getDeclaredVariables( specifier ) ),
+ 		[]
+ 	);
+ 	const references = variables.reduce(
+@@ -58,7 +58,9 @@ function collectAllNodesFromCallbackFunctions( context, node ) {
+ 		( acc, { identifier: { parent } } ) =>
+ 			parent && parent.arguments && parent.arguments.length > 0
+ 				? acc.concat(
+-						context.getDeclaredVariables( parent.arguments[ 0 ] )
++						context.sourceCode.getDeclaredVariables(
++							parent.arguments[ 0 ]
++						)
+ 				  )
+ 				: acc,
+ 		[]
+@@ -153,8 +155,8 @@ function getFixes( fixer, context, callNode ) {
+ 		fixer.replaceText( callNode.arguments[ 0 ], variableName ),
+ 	];
+ 
+-	const imports = context
+-		.getAncestors()[ 0 ]
++	const imports = context.sourceCode
++		.getAncestors( callNode )[ 0 ]
+ 		.body.filter( ( node ) => node.type === 'ImportDeclaration' );
+ 	const packageImports = imports.filter(
+ 		( node ) => node.source.value === importName
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/i18n-translator-comments.js b/node_modules/@wordpress/eslint-plugin/rules/i18n-translator-comments.js
+index 56d563d..3bad961 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/i18n-translator-comments.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/i18n-translator-comments.js
+@@ -54,7 +54,9 @@ module.exports = {
+ 					return;
+ 				}
+ 
+-				const comments = context.getCommentsBefore( node ).slice();
++				const comments = context.sourceCode
++					.getCommentsBefore( node )
++					.slice();
+ 
+ 				let parentNode = parent;
+ 
+@@ -70,7 +72,9 @@ module.exports = {
+ 					parentNode.type !== 'Program' &&
+ 					Math.abs( parentNode.loc.start.line - currentLine ) <= 1
+ 				) {
+-					comments.push( ...context.getCommentsBefore( parentNode ) );
++					comments.push(
++						...context.sourceCode.getCommentsBefore( parentNode )
++					);
+ 					parentNode = parentNode.parent;
+ 				}
+ 
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/no-unused-vars-before-return.js b/node_modules/@wordpress/eslint-plugin/rules/no-unused-vars-before-return.js
+index f913996..eacc81e 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/no-unused-vars-before-return.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/no-unused-vars-before-return.js
+@@ -15,11 +15,12 @@ const FUNCTION_SCOPE_JSX_IDENTIFIERS = new WeakMap();
+  * undefined if it cannot be determined.
+  *
+  * @param {ESLintRuleContext} context ESLint context object.
++ * @param {ESTreeNode}        node    ESLint tree node.
+  *
+  * @return {ESLintScope|undefined} Function scope, if known.
+  */
+-function getClosestFunctionScope( context ) {
+-	let functionScope = context.getScope();
++function getClosestFunctionScope( context, node ) {
++	let functionScope = context.sourceCode.getScope( node );
+ 	while ( functionScope.type !== 'function' && functionScope.upper ) {
+ 		functionScope = functionScope.upper;
+ 	}
+@@ -73,7 +74,7 @@ module.exports = /** @type {import('eslint').Rule} */ ( {
+ 				// identifiers. Account for this by visiting JSX identifiers
+ 				// first, and tracking them in a map per function scope, which
+ 				// is later merged with the known variable references.
+-				const functionScope = getClosestFunctionScope( context );
++				const functionScope = getClosestFunctionScope( context, node );
+ 				if ( ! functionScope ) {
+ 					return;
+ 				}
+@@ -88,7 +89,7 @@ module.exports = /** @type {import('eslint').Rule} */ ( {
+ 				FUNCTION_SCOPE_JSX_IDENTIFIERS.get( functionScope ).add( node );
+ 			},
+ 			'ReturnStatement:exit'( node ) {
+-				const functionScope = getClosestFunctionScope( context );
++				const functionScope = getClosestFunctionScope( context, node );
+ 				if ( ! functionScope ) {
+ 					return;
+ 				}
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/no-wp-process-env.js b/node_modules/@wordpress/eslint-plugin/rules/no-wp-process-env.js
+index be7c37e..55aca44 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/no-wp-process-env.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/no-wp-process-env.js
+@@ -17,7 +17,7 @@ module.exports = {
+ 			useGlobalThis:
+ 				'`{{ name }}` should not be accessed from process.env. Use `globalThis.{{name}}`.',
+ 			noGutenbergPhase:
+-				'The GUTENBERG_PHASE environment variable is no longer available. Use IS_GUTENBERG_PLUGIN (boolean).',
++				'The GUTENBERG_PHASE environement variable is no longer available. Use IS_GUTENBERG_PLUGIN (boolean).',
+ 		},
+ 	},
+ 	create( context ) {
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/react-no-unsafe-timeout.js b/node_modules/@wordpress/eslint-plugin/rules/react-no-unsafe-timeout.js
+index 8253d0e..4804f33 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/react-no-unsafe-timeout.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/react-no-unsafe-timeout.js
+@@ -71,7 +71,7 @@ module.exports = {
+ 				// Consider whether `setTimeout` is a reference to the global
+ 				// by checking references to see if `setTimeout` resolves to a
+ 				// variable in scope.
+-				const { references } = context.getScope();
++				const { references } = context.sourceCode.getScope( node );
+ 				const hasResolvedReference = references.some(
+ 					( reference ) =>
+ 						reference.identifier.name === 'setTimeout' &&
+diff --git a/node_modules/@wordpress/eslint-plugin/rules/wp-global-usage.js b/node_modules/@wordpress/eslint-plugin/rules/wp-global-usage.js
+index b2c395e..c6c75d9 100644
+--- a/node_modules/@wordpress/eslint-plugin/rules/wp-global-usage.js
++++ b/node_modules/@wordpress/eslint-plugin/rules/wp-global-usage.js
+@@ -25,7 +25,7 @@ function isUsedInConditional( node ) {
+ 	/** @type {import('estree').Node|undefined} */
+ 	let current = node;
+ 
+-	// Simple negation is the only expression allowed in the conditional:
++	// Simple negation is the only expresion allowed in the conditional:
+ 	// if ( ! globalThis.SCRIPT_DEBUG ) {}
+ 	// const D = ! globalThis.SCRIPT_DEBUG ? 'yes' : 'no';
+ 	if (
 diff --git a/node_modules/@wordpress/eslint-plugin/tsconfig.json b/node_modules/@wordpress/eslint-plugin/tsconfig.json
 new file mode 100644
 index 0000000..a769c50
@@ -805,3 +942,28 @@ index 0000000..a769c50
 +	"files": [ "rules/dependency-group.js", "rules/no-unsafe-wp-apis.js" ],
 +	"include": []
 +}
+diff --git a/node_modules/@wordpress/eslint-plugin/utils/constants.js b/node_modules/@wordpress/eslint-plugin/utils/constants.js
+index 44e881f..a19add7 100644
+--- a/node_modules/@wordpress/eslint-plugin/utils/constants.js
++++ b/node_modules/@wordpress/eslint-plugin/utils/constants.js
+@@ -37,13 +37,13 @@ const TRANSLATION_FUNCTIONS = new Set( [ '__', '_x', '_n', '_nx' ] );
+  * @type {RegExp}
+  */
+ const REGEXP_SPRINTF_PLACEHOLDER =
+-	/(?<!%)%(((\d+)\$)|(\(([$_a-zA-Z][$_a-zA-Z0-9]*)\)))?[ +0#-]*\d*(\.(\d+|\*))?(ll|[lhqL])?([cduxXefgsp])/g;
+-//               	  ▲         ▲                    ▲       ▲  ▲            ▲           ▲ type
+-//               	  │         │                    │       │  │            └ Length (unsupported)
+-//               	  │         │                    │       │  └ Precision / max width
+-//               	  │         │                    │       └ Min width (unsupported)
+-//               	  │         │                    └ Flags (unsupported)
+-//               	  └ Index   └ Name (for named arguments)
++	/%(((\d+)\$)|(\(([$_a-zA-Z][$_a-zA-Z0-9]*)\)))?[ +0#-]*\d*(\.(\d+|\*))?(ll|[lhqL])?([cduxXefgsp%])/g;
++//               ▲         ▲                    ▲       ▲  ▲            ▲           ▲ type
++//               │         │                    │       │  │            └ Length (unsupported)
++//               │         │                    │       │  └ Precision / max width
++//               │         │                    │       └ Min width (unsupported)
++//               │         │                    └ Flags (unsupported)
++//               └ Index   └ Name (for named arguments)
+ 
+ /**
+  * "Unordered" means there's no position specifier: '%s', not '%2$s'.
