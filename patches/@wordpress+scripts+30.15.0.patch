@@ -94,6 +94,63 @@ index 0000000..2f8407e
 +}
 +
 +module.exports = eslintConfig;
+diff --git a/node_modules/@wordpress/scripts/config/webpack.config.js b/node_modules/@wordpress/scripts/config/webpack.config.js
+index 74ce5e0..2de4a7d 100644
+--- a/node_modules/@wordpress/scripts/config/webpack.config.js
++++ b/node_modules/@wordpress/scripts/config/webpack.config.js
+@@ -31,7 +31,7 @@ const {
+ 	hasArgInCLI,
+ 	hasCssnanoConfig,
+ 	hasPostCSSConfig,
+-	getProjectSourcePath,
++	getWordPressSrcDirectory,
+ 	getWebpackEntryPoints,
+ 	getAsBooleanFromENV,
+ 	getBlockJsonModuleFields,
+@@ -325,14 +325,14 @@ const scriptConfig = {
+ 			} ),
+ 
+ 		new PhpFilePathsPlugin( {
+-			context: getProjectSourcePath(),
++			context: getWordPressSrcDirectory(),
+ 			props: [ 'render', 'variations' ],
+ 		} ),
+ 		new CopyWebpackPlugin( {
+ 			patterns: [
+ 				{
+ 					from: '**/block.json',
+-					context: getProjectSourcePath(),
++					context: getWordPressSrcDirectory(),
+ 					noErrorOnMissing: true,
+ 					transform( content, absoluteFrom ) {
+ 						const convertExtension = ( path ) => {
+@@ -369,7 +369,7 @@ const scriptConfig = {
+ 								const runtimePath = relative(
+ 									dirname( absoluteFrom ),
+ 									fromProjectRoot(
+-										getProjectSourcePath() +
++										getWordPressSrcDirectory() +
+ 											sep +
+ 											'runtime.js'
+ 									)
+@@ -398,7 +398,7 @@ const scriptConfig = {
+ 				},
+ 				{
+ 					from: '**/*.php',
+-					context: getProjectSourcePath(),
++					context: getWordPressSrcDirectory(),
+ 					noErrorOnMissing: true,
+ 					filter: ( filepath ) => {
+ 						return (
+@@ -440,7 +440,7 @@ if ( hasExperimentalModulesFlag ) {
+ 			/** @type {ReadonlyArray<string>} */
+ 			this.blockJsonFiles = glob( '**/block.json', {
+ 				absolute: true,
+-				cwd: fromProjectRoot( getProjectSourcePath() ),
++				cwd: fromProjectRoot( getWordPressSrcDirectory() ),
+ 			} );
+ 		}
+ 
 diff --git a/node_modules/@wordpress/scripts/scripts/lint-js.js b/node_modules/@wordpress/scripts/scripts/lint-js.js
 index 781e548..b42a3ea 100644
 --- a/node_modules/@wordpress/scripts/scripts/lint-js.js
@@ -432,3 +489,57 @@ index 8894819..3d99f37 100644
  	hasBabelConfig,
  	hasCssnanoConfig,
  	hasJestConfig,
+diff --git a/node_modules/@wordpress/scripts/utils/index.js b/node_modules/@wordpress/scripts/utils/index.js
+index e7c6644..dc4008b 100644
+--- a/node_modules/@wordpress/scripts/utils/index.js
++++ b/node_modules/@wordpress/scripts/utils/index.js
+@@ -13,22 +13,17 @@ const {
+ } = require( './cli' );
+ const {
+ 	getJestOverrideConfigFile,
+-	getPhpFilePaths,
+-	getProjectSourcePath,
+ 	getWebpackArgs,
++	getWordPressSrcDirectory,
+ 	getWebpackEntryPoints,
++	getPhpFilePaths,
+ 	hasBabelConfig,
+ 	hasCssnanoConfig,
+ 	hasJestConfig,
+ 	hasPostCSSConfig,
+ 	hasPrettierConfig,
+ } = require( './config' );
+-const {
+-	fromConfigRoot,
+-	fromProjectRoot,
+-	fromScriptsRoot,
+-	hasProjectFile,
+-} = require( './file' );
++const { fromProjectRoot, fromConfigRoot, hasProjectFile } = require( './file' );
+ const { getPackageProp, hasPackageProp } = require( './package' );
+ const {
+ 	getBlockJsonModuleFields,
+@@ -36,9 +31,8 @@ const {
+ } = require( './block-json' );
+ 
+ module.exports = {
+-	fromConfigRoot,
+ 	fromProjectRoot,
+-	fromScriptsRoot,
++	fromConfigRoot,
+ 	getAsBooleanFromENV,
+ 	getArgFromCLI,
+ 	getArgsFromCLI,
+@@ -46,10 +40,10 @@ module.exports = {
+ 	getJestOverrideConfigFile,
+ 	getNodeArgsFromCLI,
+ 	getPackageProp,
+-	getPhpFilePaths,
+-	getProjectSourcePath,
+ 	getWebpackArgs,
++	getWordPressSrcDirectory,
+ 	getWebpackEntryPoints,
++	getPhpFilePaths,
+ 	getBlockJsonModuleFields,
+ 	getBlockJsonScriptFields,
+ 	hasArgInCLI,
