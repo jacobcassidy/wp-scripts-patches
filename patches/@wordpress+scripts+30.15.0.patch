@@ -282,7 +282,7 @@ index ef8b0ad..103ec6d 100644
  	hasArgInCLI( '--config' ) ||
  	hasProjectFile( '.stylelintrc.js' ) ||
 diff --git a/node_modules/@wordpress/scripts/utils/config.js b/node_modules/@wordpress/scripts/utils/config.js
-index 8894819..3d99f37 100644
+index 8894819..bf4099f 100644
 --- a/node_modules/@wordpress/scripts/utils/config.js
 +++ b/node_modules/@wordpress/scripts/utils/config.js
 @@ -9,7 +9,6 @@ const { sync: glob } = require( 'fast-glob' );
@@ -293,11 +293,12 @@ index 8894819..3d99f37 100644
  	getArgsFromCLI,
  	getFileArgsFromCLI,
  	hasArgInCLI,
-@@ -114,43 +113,10 @@ const hasPostCSSConfig = () =>
+@@ -114,43 +113,11 @@ const hasPostCSSConfig = () =>
  const getWebpackArgs = () => {
  	// Gets all args from CLI without those prefixed with `--webpack`.
  	let webpackArgs = getArgsFromCLI( [
 -		'--blocks-manifest',
++    '--blocks-manifest',
  		'--experimental-modules',
 -		'--source-path',
  		'--webpack',
@@ -337,7 +338,7 @@ index 8894819..3d99f37 100644
  	const hasWebpackOutputOption =
  		hasArgInCLI( '-o' ) || hasArgInCLI( '--output' );
  	if (
-@@ -170,6 +136,10 @@ const getWebpackArgs = () => {
+@@ -170,6 +137,10 @@ const getWebpackArgs = () => {
  		const pathToEntry = ( path ) => {
  			const entryName = basename( path, '.js' );
  
@@ -348,7 +349,7 @@ index 8894819..3d99f37 100644
  			return [ entryName, path ];
  		};
  
-@@ -192,11 +162,7 @@ const getWebpackArgs = () => {
+@@ -192,11 +163,7 @@ const getWebpackArgs = () => {
  				const [ entryName, path ] = fileArg.includes( '=' )
  					? fileArg.split( '=' )
  					: pathToEntry( fileArg );
@@ -361,7 +362,7 @@ index 8894819..3d99f37 100644
  			} );
  			process.env.WP_ENTRY = JSON.stringify( entry );
  		}
-@@ -210,20 +176,20 @@ const getWebpackArgs = () => {
+@@ -210,20 +177,20 @@ const getWebpackArgs = () => {
  };
  
  /**
@@ -390,7 +391,7 @@ index 8894819..3d99f37 100644
   *
   * @see https://webpack.js.org/concepts/entry-points/
   *
-@@ -234,32 +200,31 @@ function getWebpackEntryPoints( buildType ) {
+@@ -234,32 +201,31 @@ function getWebpackEntryPoints( buildType ) {
  	 * @return {Object<string,string>} The list of entry points.
  	 */
  	return () => {
@@ -430,7 +431,7 @@ index 8894819..3d99f37 100644
  			);
  
  			const entryPoints = {};
-@@ -311,7 +276,7 @@ function getWebpackEntryPoints( buildType ) {
+@@ -311,7 +277,7 @@ function getWebpackEntryPoints( buildType ) {
  							) }" listed in "${ blockMetadataFile.replace(
  								fromProjectRoot( sep ),
  								''
@@ -439,7 +440,7 @@ index 8894819..3d99f37 100644
  						);
  						continue;
  					}
-@@ -325,7 +290,7 @@ function getWebpackEntryPoints( buildType ) {
+@@ -325,7 +291,7 @@ function getWebpackEntryPoints( buildType ) {
  						`${ entryName }.?(m)[jt]s?(x)`,
  						{
  							absolute: true,
@@ -448,7 +449,7 @@ index 8894819..3d99f37 100644
  						}
  					);
  
-@@ -337,7 +302,7 @@ function getWebpackEntryPoints( buildType ) {
+@@ -337,7 +303,7 @@ function getWebpackEntryPoints( buildType ) {
  							) }" listed in "${ blockMetadataFile.replace(
  								fromProjectRoot( sep ),
  								''
@@ -457,7 +458,7 @@ index 8894819..3d99f37 100644
  						);
  						continue;
  					}
-@@ -357,15 +322,15 @@ function getWebpackEntryPoints( buildType ) {
+@@ -357,15 +323,15 @@ function getWebpackEntryPoints( buildType ) {
  		}
  
  		// 3. Checks whether a standard file name can be detected in the defined source directory,
@@ -476,7 +477,7 @@ index 8894819..3d99f37 100644
  			);
  			return {};
  		}
-@@ -447,10 +412,10 @@ function getPhpFilePaths( context, props ) {
+@@ -447,10 +413,10 @@ function getPhpFilePaths( context, props ) {
  
  module.exports = {
  	getJestOverrideConfigFile,
