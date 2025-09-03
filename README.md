@@ -1,5 +1,8 @@
 # `wp-scripts-patches` Readme
 
+> [!NOTE]
+> This repo has been archived since it's been superseded by the [CassidyDC Development Toolset repo](https://github.com/CassidyDC/development-toolset).
+
 ## Overview
 
 This repository provides patches for the [`@wordpress/scripts`](https://www.npmjs.com/package/@wordpress/scripts) package to support modern formatting and linting file types for WordPress development.
